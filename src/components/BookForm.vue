@@ -1,62 +1,114 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watchEffect } from 'vue';
+import api from '../api/client';
 
 const props = defineProps({
-  book: Object
-})
+  book: {
+    type: Object,
+    default: null
+  }
+});
 
-const emit = defineEmits(['save'])
+const emit = defineEmits(['saved', 'cancel']);
 
-const title = ref('')
-const author = ref('')
-const year = ref('')
+const form = ref({
+  title: '',
+  author: '',
+  year: new Date().getFullYear(),
+  genre: ''
+});
 
-watch(
-  () => props.book,
-  (value) => {
-    if (value) {
-      title.value = value.title
-      author.value = value.author
-      year.value = value.year
+const error = ref('');
+const busy = ref(false);
+
+watchEffect(() => {
+  if (props.book) {
+    form.value = { ...props.book };
+  } else {
+    form.value = {
+      title: '',
+      author: '',
+      year: new Date().getFullYear(),
+      genre: ''
+    };
+  }
+});
+
+async function submit() {
+  error.value = '';
+  busy.value = true;
+
+  try {
+    const payload = {
+      title: form.value.title,
+      author: form.value.author,
+      year: Number(form.value.year),
+      genre: form.value.genre || undefined,
+    };
+
+    if (props.book?.id) {
+      await api.put(`/api/books/${props.book.id}`, payload);
+      emit('saved', 'Updated');
+    } else {
+      await api.post('/api/books', payload);
+      emit('saved', 'Created');
     }
-  },
-  { immediate: true }
-)
 
-function submit() {
-  emit('save', {
-    title: title.value,
-    author: author.value,
-    year: year.value
-  })
+  } catch (e) {
+    const data = e.response?.data;
 
-  title.value = ''
-  author.value = ''
-  year.value = ''
+    error.value = data?.errors
+      ? Object.values(data.errors).join(' • ')
+      : (data?.error || e.message);
+
+  } finally {
+    busy.value = false;
+  }
 }
 </script>
 
 <template>
-  <div>
-    <h3>Book Form</h3>
+  <div class="card">
+    <h3 style="margin-top: 0;">
+      {{ props.book?.id ? 'Edit book' : 'New book' }}
+    </h3>
 
-    <input
-      v-model="title"
-      placeholder="Title"
-    />
+    <p v-if="error" class="alert error">
+      {{ error }}
+    </p>
 
-    <input
-      v-model="author"
-      placeholder="Author"
-    />
+    <div class="row">
+      <div>
+        <label>Title</label>
+        <input v-model="form.title" />
+      </div>
 
-    <input
-      v-model="year"
-      placeholder="Year"
-    />
+      <div>
+        <label>Author</label>
+        <input v-model="form.author" />
+      </div>
+    </div>
 
-    <button @click="submit">
-      Save
-    </button>
+    <div class="row">
+      <div>
+        <label>Year</label>
+        <input v-model.number="form.year" type="number" />
+      </div>
+
+      <div>
+        <label>Genre</label>
+        <input v-model="form.genre" />
+      </div>
+    </div>
+
+    <p style="margin-top:18px; display:flex; gap:12px;">
+      <button class="primary" :disabled="busy" @click="submit">
+        {{ busy ? 'Saving…' : 'Save' }}
+      </button>
+
+      <button @click="$emit('cancel')">
+        Cancel
+      </button>
+    </p>
   </div>
 </template>
