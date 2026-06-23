@@ -1,0 +1,54 @@
+body{
+  font-family: Arial, sans-serif;
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+
+header{
+  margin-bottom:20px;
+}
+
+nav{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+input{
+  padding:8px;
+  margin:5px;
+}
+
+button{
+  padding:8px 12px;
+  cursor:pointer;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+}
+
+th,td{
+  padding:10px;
+  text-align:left;
+}
+
+.card{
+  border:1px solid #ddd;
+  padding:20px;
+  margin-bottom:20px;
+  border-radius:8px;
+}
+
+.alert{
+  padding:10px;
+  margin-bottom:10px;
+}
+
+.error{
+  color:red;
+}
