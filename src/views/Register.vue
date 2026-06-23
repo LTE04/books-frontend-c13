@@ -1,59 +1,56 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuth } from '../stores/auth'
+import { ref } from 'vue';
+import { useRouter, RouterLink } from 'vue-router';
+import { useAuth } from '../stores/auth';
 
-const auth = useAuth()
-const router = useRouter()
+const auth   = useAuth();
+const router = useRouter();
 
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const error = ref('')
+const name     = ref('');
+const email    = ref('');
+const password = ref('');
+const error    = ref('');
+const busy     = ref(false);
 
 async function submit() {
+  error.value = '';
+  busy.value  = true;
   try {
-    await auth.register(
-      name.value,
-      email.value,
-      password.value
-    )
-
-    router.push('/')
+    await auth.register(name.value, email.value, password.value);
+    router.push('/');
   } catch (e) {
-    error.value =
-      e.response?.data?.error ||
-      e.message
+    error.value = e.response?.data?.errors
+      ? Object.values(e.response.data.errors).join(' • ')
+      : (e.response?.data?.error || e.message);
+  } finally {
+    busy.value = false;
   }
 }
 </script>
 
 <template>
-  <div>
-    <h2>Register</h2>
+  <div class="card" style="max-width: 420px; margin: 32px auto;">
+    <h2 style="margin-top: 0;">Register</h2>
+    <p v-if="error" class="alert error">{{ error }}</p>
 
-    <p v-if="error" style="color:red">
-      {{ error }}
+    <label>Full name</label>
+    <input v-model="name" />
+
+    <label>Email</label>
+    <input v-model="email" type="email" autocomplete="email" />
+
+    <label>Password (min 8 chars)</label>
+    <input v-model="password" type="password" autocomplete="new-password" />
+
+    <p style="margin-top: 18px;">
+      <button class="primary" :disabled="busy" @click="submit">
+        {{ busy ? 'Creating…' : 'Create account' }}
+      </button>
     </p>
 
-    <input
-      v-model="name"
-      placeholder="Name"
-    />
-
-    <input
-      v-model="email"
-      placeholder="Email"
-    />
-
-    <input
-      v-model="password"
-      type="password"
-      placeholder="Password"
-    />
-
-    <button @click="submit">
-      Register
-    </button>
+    <p style="font-size: 13px; color: var(--muted);">
+      Already have one?
+      <RouterLink to="/login">Sign in</RouterLink>
+    </p>
   </div>
 </template>
