@@ -1,40 +1,38 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import api from '../api/client'
+import { ref, onMounted } from 'vue';
+import api from '../api/client';
 
-const user = ref(null)
+const me    = ref(null);
+const error = ref('');
 
-async function loadProfile() {
+onMounted(async () => {
   try {
-    const { data } = await api.get('/auth/me')
-    user.value = data
-  } catch (err) {
-    console.error(err)
+    const { data } = await api.get('/auth/me');
+    me.value = data;
+  } catch (e) {
+    error.value = e.message;
   }
-}
-
-onMounted(loadProfile)
+});
 </script>
 
 <template>
-  <div>
-    <h2>Profile</h2>
+  <div class="card" style="max-width: 480px; margin: 0 auto;">
+    <h2 style="margin-top: 0;">My Profile</h2>
 
-    <div v-if="user">
-      <p>
-        <strong>Name:</strong>
-        {{ user.name }}
-      </p>
+    <p v-if="error" class="alert error">
+      {{ error }}
+    </p>
 
-      <p>
-        <strong>Email:</strong>
-        {{ user.email }}
-      </p>
-
+    <div v-if="me">
+      <p><strong>Name:</strong> {{ me.name }}</p>
+      <p><strong>Email:</strong> {{ me.email }}</p>
       <p>
         <strong>Role:</strong>
-        {{ user.role }}
+        <span class="tag" :class="{ admin: me.role === 'admin' }">
+          {{ me.role }}
+        </span>
       </p>
+      <p><strong>Joined:</strong> {{ me.created_at }}</p>
     </div>
   </div>
 </template>
