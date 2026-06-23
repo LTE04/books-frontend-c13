@@ -1,53 +1,76 @@
 <script setup>
 import { useAuth } from './stores/auth'
+import { useRouter } from 'vue-router'
 
 const auth = useAuth()
+const router = useRouter()
 
 function logout() {
   auth.logout()
+  router.push('/login')
 }
 </script>
 
 <template>
-  <nav>
-    <router-link to="/">
-      Books
-    </router-link>
 
-    |
+  <header>
 
-    <router-link
-      v-if="auth.isAuthenticated"
-      to="/profile"
-    >
-      Profile
-    </router-link>
+    <h1>UTM Books</h1>
 
-    |
+    <nav>
 
-    <router-link
-      v-if="!auth.isAuthenticated"
-      to="/login"
-    >
-      Login
-    </router-link>
+      <RouterLink to="/">
+        Books
+      </RouterLink>
 
-    |
+      |
 
-    <router-link
-      v-if="!auth.isAuthenticated"
-      to="/register"
-    >
-      Register
-    </router-link>
+      <RouterLink
+        v-if="auth.isAuthenticated"
+        to="/profile"
+      >
+        Profile
+      </RouterLink>
 
-    <button
-      v-if="auth.isAuthenticated"
-      @click="logout"
-    >
-      Logout
-    </button>
-  </nav>
+      |
+
+      <RouterLink
+        v-if="!auth.isAuthenticated"
+        to="/login"
+      >
+        Login
+      </RouterLink>
+
+      |
+
+      <RouterLink
+        v-if="!auth.isAuthenticated"
+        to="/register"
+      >
+        Register
+      </RouterLink>
+
+      |
+
+      <button
+        v-if="auth.isAuthenticated"
+        @click="logout"
+      >
+        Logout
+      </button>
+
+    </nav>
+
+    <p v-if="auth.user">
+      Welcome,
+      <strong>{{ auth.user.name }}</strong>
+      ({{ auth.user.role }})
+    </p>
+
+  </header>
+
+  <hr>
 
   <router-view />
+
 </template>
