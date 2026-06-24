@@ -11,8 +11,10 @@ const q = ref('')
 
 const showForm = ref(false)
 const editingBook = ref(null)
+const errorMsg = ref('')
 
 async function load() {
+  errorMsg.value = ''
   try {
     const { data } = await api.get('/api/books', {
       params: {
@@ -71,76 +73,47 @@ onMounted(load)
 
 <template>
   <div>
-
-    <h2>Books</h2>
-
-    <div style="margin-bottom:20px;">
+    <!-- Search + New Book bar -->
+    <div class="card" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:0;">
       <input
         v-model="q"
-        placeholder="Search title or author"
+        placeholder="Search by title or author"
+        style="flex:1; min-width:180px;"
         @keyup.enter="load"
       />
-
-      <button @click="load">
-        Search
-      </button>
-
-      <button
-        v-if="auth.isAuthenticated"
-        @click="createBook"
-      >
-        + New Book
-      </button>
+      <button class="primary" @click="load">Search</button>
+      <button v-if="auth.isAuthenticated" class="primary" @click="createBook">+ New book</button>
     </div>
-
+ 
+    <!-- Error -->
+    <p v-if="errorMsg" class="alert error">{{ errorMsg }}</p>
+ 
+    <!-- Book Form (inline) -->
     <BookForm
       v-if="showForm"
       :book="editingBook"
       @saved="saved"
       @cancel="showForm = false"
     />
-
-    <table border="1" cellpadding="10">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Author</th>
-          <th>Year</th>
-          <th>Genre</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr
-          v-for="book in books"
-          :key="book.id"
-        >
-          <td>{{ book.title }}</td>
-          <td>{{ book.author }}</td>
-          <td>{{ book.year }}</td>
-          <td>{{ book.genre }}</td>
-
-          <td>
-
-            <button
-              v-if="canEdit(book)"
-              @click="editBook(book)"
-            >
-              Edit
-            </button>
-
-            <button
-              v-if="canDelete()"
-              @click="deleteBook(book.id)"
-            >
-              Delete
-            </button>
-
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
+ 
+    <!-- Book list cards -->
+    <div class="card" v-if="books.length">
+      <div v-for="book in books" :key="book.id" class="book">
+        <div>
+          <strong>{{ book.title }}</strong>
+          <span class="tag">{{ book.year }}</span>
+          <div class="meta">{{ book.author }} • {{ book.genre }}</div>
+        </div>
+        <div class="actions">
+          <button v-if="canEdit(book)" @click="editBook(book)">Edit</button>
+          <button v-if="canDelete()" class="danger" @click="deleteBook(book.id)">Delete</button>
+        </div>
+      </div>
+    </div>
+ 
+    <p v-else style="color: var(--muted); text-align:center; margin-top:32px;">
+      No books found.
+    </p>
   </div>
 </template>
+ 
