@@ -1,9 +1,11 @@
 <script setup>
-import { useAuth } from './stores/auth'
-import { useRouter } from 'vue-router'
+import { useAuth } from './stores/auth';
+import { RouterLink, RouterView, useRouter } from 'vue-router';
 
 const auth = useAuth()
 const router = useRouter()
+
+const apiBase = import.meta.env.VITE_API_BASE_URL;
 
 function logout() {
   auth.logout()
@@ -62,15 +64,18 @@ function logout() {
     </nav>
 
     <p v-if="auth.user">
-      Welcome,
-      <strong>{{ auth.user.name }}</strong>
-      ({{ auth.user.role }})
+      Welcome, <strong>{{ auth.user.name }}</strong>
+      <span class="tag" :class="{ admin: auth.isAdmin }">{{ auth.user.role }}</span>
     </p>
-
   </header>
 
   <hr>
 
-  <router-view />
+  <main>
+    <RouterView />
+    <p style="text-align:center; color: var(--muted, #999); font-size: 11px; margin-top: 32px;">
+      API: {{ apiBase }}
+    </p>
+  </main>
 
 </template>
