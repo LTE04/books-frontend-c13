@@ -1,27 +1,50 @@
-<script setup> 
-import { ref } from 'vue'; 
-import { useRouter } from 'vue-router'; 
-import { useAuth } from '../stores/auth'; 
-  
-const auth = useAuth(); 
-const router = useRouter(); 
-const email = ref('member@books.test'); 
-const password = ref('password'); 
-const error = ref(''); 
-  
-async function submit() { 
-  try { 
-    await auth.login(email.value, password.value); 
-    router.push('/'); 
-  } catch (e) { 
-    error.value = e.response?.data?.error || e.message; 
-  } 
-} 
-</script> 
-  
-<template> 
-  <p v-if="error" style="color:red">{{ error }}</p> 
-  <input v-model="email" placeholder="Email" /> 
-  <input v-model="password" type="password" placeholder="Password" /> 
-  <button @click="submit">Sign in</button> 
-</template> 
+<script setup>
+import { ref } from 'vue';
+import { useRouter, RouterLink } from 'vue-router';
+import { useAuth } from '../stores/auth';
+
+const auth     = useAuth();
+const router   = useRouter();
+const email    = ref('member@books.test');
+const password = ref('password');
+const error    = ref('');
+const busy     = ref(false);
+
+async function submit() {
+  error.value = '';
+  busy.value  = true;
+  try {
+    await auth.login(email.value, password.value);
+    router.push('/');
+  } catch (e) {
+    error.value = e.response?.data?.error || e.message;
+  } finally {
+    busy.value = false;
+  }
+}
+</script>
+
+<template>
+  <div class="card" style="max-width: 420px; margin: 32px auto;">
+    <h2 style="margin-top: 0;">Sign in</h2>
+
+    <p v-if="error" class="alert error">{{ error }}</p>
+
+    <label>Email</label>
+    <input v-model="email" type="email" autocomplete="email" />
+
+    <label>Password</label>
+    <input v-model="password" type="password" autocomplete="current-password" />
+
+    <p style="margin-top: 18px;">
+      <button class="primary" :disabled="busy" @click="submit">
+        {{ busy ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </p>
+
+    <p style="font-size: 13px; color: var(--muted);">
+      No account?
+      <RouterLink to="/register">Register</RouterLink>
+    </p>
+  </div>
+</template>
